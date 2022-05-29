@@ -3,6 +3,13 @@ from collections import defaultdict
 from heapq import heappush, heappop
 import string
 
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfparser import PDFParser
+
 def highlight_match(text, query, tokenizer=None):
 
     if tokenizer == None:
@@ -23,3 +30,24 @@ def highlight_match(text, query, tokenizer=None):
         prev_end=end_loc
 
     return highlighted_text
+
+def page_parser(fname: str):
+    PAGE_SEP = '<PAGE>'
+    output_string = StringIO()
+    with open(fname, 'rb') as in_file:
+        parser = PDFParser(in_file)
+        doc = PDFDocument(parser)
+        rsrcmgr = PDFResourceManager()
+        device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        for page in PDFPage.create_pages(doc):
+            interpreter.process_page(page)
+            output_string.write(PAGE_SEP)
+
+    data = output_string.getvalue()
+    corpus = data.split(PAGE_SEP)
+    return corpus
+
+def paragraph_parser(fname):
+    pass
+
