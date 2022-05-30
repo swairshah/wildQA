@@ -1,6 +1,11 @@
-from rank_bm25 import BM25Okapi
+import nltk
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
+from rank_bm25 import BM25Okapi
+
+from sentence_transformers import SentenceTransformer, CrossEncoder
+import sentence_transformers.util
 
 import string
 string.punctuation += '“”'
@@ -10,9 +15,11 @@ from utils import highlight_match, page_parser
 
 def bm25_tokenizer(text):
     tokenized_text = []
+    stemmer = nltk.stem.SnowballStemmer('english')
     for token in word_tokenize(text):
         token = token.strip(string.punctuation)
         if len(token) > 0 and token not in ENGLISH_STOP_WORDS:
+            token = stemmer.stem(token)
             tokenized_text.append(token)
 
     return tokenized_text
