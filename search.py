@@ -34,16 +34,31 @@ class DocSearch:
         self.bm25_tokenized_corpus = [bm25_tokenizer(page) for page in self.pages]
         self.bm25 = BM25Okapi(self.bm25_tokenized_corpus)
 
+        self.biencoder = SentenceTransformer('cross-encoder/ms-marco-electra-base')
+        self.biencoder.max_seq_length = 512
+        #self.biencoder_corpus_embedding = self.biencoder.encode(self.pages, convert_to_tensor=True)
+
     def bm25_search(self, query, n=5):
         tokenized_query = self.bm25_tokenizer(query)
         doc_scores = self.bm25.get_scores(tokenized_query)
         results = self.bm25.get_top_n(tokenized_query, self.pages, n)
         return results
 
+    def biencoder_search(self, query, n=5):
+        query_embedding = self.biencoder.encode(query, convert_to_tensor=True)
+        results = sentence_transformers.util.semantic_search(query_embedding, self.biencoder_corpus_embedding)
+
+        ret = []
+        for res in results[0][:n]:
+            ret.append(self.pages[res['corpus_id']])
+
+        return ret
+
 if __name__ == "__main__":
     fname = 'data/driverguide.pdf'
     doc = DocSearch(fname)
     query = "what is the driving speed limit within a school zone?"
+
     results = doc.bm25_search(query)
     for result in results:
         print(highlight_match(result, query))
