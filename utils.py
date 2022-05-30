@@ -2,6 +2,8 @@ from colorama import Fore, Back, Style
 from collections import defaultdict
 from heapq import heappush, heappop
 import string
+import re
+from io import StringIO
 
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -45,8 +47,21 @@ def page_parser(fname: str):
             output_string.write(PAGE_SEP)
 
     data = output_string.getvalue()
-    corpus = data.split(PAGE_SEP)
-    return corpus
+    pages = data.split(PAGE_SEP)
+    return pages
+
+def overlapping_paragraph_generator(pages, size=300, overlap=50):
+
+    def chunk(lst, n, k):
+        n = min(n, len(lst)-1)
+        return [lst[i:i+n] for i in range(0, len(lst) - n+1, n-k)]
+
+    doc = '<PAGE>'.join(pages)	
+    words = [l for l in re.split('\.|\n|\ ', doc) if l]
+
+    ret = [' '.join(line_set) for line_set in chunk(words, size, overlap)]
+
+    return ret
 
 def paragraph_parser(fname):
     pass

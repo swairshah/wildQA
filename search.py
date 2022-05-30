@@ -11,7 +11,7 @@ import string
 string.punctuation += '“”'
 from io import StringIO
 
-from utils import highlight_match, page_parser
+from utils import highlight_match, page_parser, overlapping_paragraph_generator
 
 def bm25_tokenizer(text):
     tokenized_text = []
@@ -27,7 +27,8 @@ def bm25_tokenizer(text):
 class DocSearch:
     def __init__(self, fname, parse_type='page'):
         self.fname = fname
-        self.pages = page_parser(self.fname)
+        pages = page_parser(self.fname)
+        self.pages = overlapping_paragraph_generator(pages)
 
         self.bm25_tokenizer = bm25_tokenizer
         self.bm25_tokenized_corpus = [bm25_tokenizer(page) for page in self.pages]
